@@ -204,6 +204,7 @@ If you use this code, please cite:
 
 ```bibtex
 @article{iptw_bch_2025,
+  author  = {Lu, Z{\'{e}}kai (Zachary)},
   title   = {How Well Does Combining Inverse Probability Weighting with the {BCH} Method
              Work for Causal Inference with Latent Class Exposures? {A} Monte Carlo Evaluation},
   journal = {Multivariate Behavioral Research},
@@ -211,6 +212,8 @@ If you use this code, please cite:
   note    = {Under review}
 }
 ```
+
+**Author:** Zékai (Zachary) Lu, Department of Sociology, McGill University
 
 ---
 
