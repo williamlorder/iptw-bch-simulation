@@ -1,5 +1,7 @@
 # IPTW-BCH: Monte Carlo Evaluation of Combined Inverse Probability Weighting and BCH Method for Causal Inference with Latent Class Exposures
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Replication code for:
 
 > **How Well Does Combining Inverse Probability Weighting with the BCH Method Work for Causal Inference with Latent Class Exposures? A Monte Carlo Evaluation**
@@ -219,4 +221,6 @@ If you use this code, please cite:
 
 ## License
 
-MIT License. See `LICENSE` for details.
+Copyright (c) 2025 Zékai (Zachary) Lu
+
+This project is licensed under the MIT License — see the [`LICENSE`](LICENSE) file for details. You are free to use, modify, and distribute this code for any purpose, including academic and commercial use, provided the original copyright notice is retained.
