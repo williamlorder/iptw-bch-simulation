@@ -1,0 +1,23 @@
+# Simulation output (large files)
+simulation_output/
+simulation_output_v2/
+simulation_output_test/
+simulation_pilot/
+*.rds
+*.RData
+
+# Mplus intermediate files
+*.inp
+*.out
+*.dat
+*.gh5
+
+# R session
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# OS files
+.DS_Store
+Thumbs.db
