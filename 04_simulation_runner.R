@@ -16,7 +16,7 @@ source("02_iptw_functions.R")
 source("03_mplus_syntax.R")
 
 # ------------------------------------------------------------------
-# Simulation design: 24-condition factorial grid
+# Simulation design: 36-condition factorial grid
 # ------------------------------------------------------------------
 SIM_CONDITIONS <- expand.grid(
   N = c(250, 500, 1000, 2000),
@@ -108,7 +108,7 @@ run_single_replication <- function(rep_id, N, entropy, gamma, work_dir) {
 
     # ---- 1. Generate data ----
     sim <- generate_data(N = N, entropy = entropy, gamma = gamma,
-                         seed = rep_id * 1000 + N)
+                         seed = rep_id * 10000 + N)
     dat <- sim$data
 
     # ---- 2. Compute oracle IPTW (true class) ----
@@ -125,6 +125,12 @@ run_single_replication <- function(rep_id, N, entropy, gamma, work_dir) {
     )
 
     oracle_diag <- compute_weight_diagnostics(ipw_oracle)
+
+    # Covariate balance diagnostic (stored but not blocking)
+    balance_smd <- tryCatch({
+      bal <- check_balance(dat, dat$true_class, ipw_oracle$weights)
+      max(abs(bal$smd_weighted))
+    }, error = function(e) NA_real_)
 
     # ---- 3. Prepare Mplus data (with oracle IPW) ----
     data_file <- file.path(rep_dir, "simdata.dat")
@@ -158,15 +164,19 @@ run_single_replication <- function(rep_id, N, entropy, gamma, work_dir) {
       error = function(e) NULL
     )
 
+    # SAVEDATA output columns (SAVE = BCHWEIGHTS CPROB):
+    # 1-10: U1-U10, 11: Y, 12: IPW, 13-15: BCHW1-BCHW3, 16-18: CPROB1-CPROB3, 19: MLC
+    MLC_COL <- 19  # Most Likely Class column
+    IPW_COL <- 12  # IPW weight column
+
     # Default: no estimated weights
     est_diag <- data.frame(
       w_mean = NA, w_sd = NA, w_max = NA, w_cv = NA, w_n_trimmed = NA
     )
     has_est_iptw <- FALSE
 
-    if (!is.null(bch_data) && nrow(bch_data) == N && ncol(bch_data) >= 19) {
-      # Column 19 = MLC (most likely class from Step 1)
-      mlc <- bch_data[, 19]
+    if (!is.null(bch_data) && nrow(bch_data) == N && ncol(bch_data) >= MLC_COL) {
+      mlc <- bch_data[, MLC_COL]
 
       # Handle Mplus missing value format
       if (is.character(mlc)) mlc <- as.numeric(mlc)
@@ -187,9 +197,9 @@ run_single_replication <- function(rep_id, N, entropy, gamma, work_dir) {
 
           est_diag <- compute_weight_diagnostics(ipw_est)
 
-          # Create modified BCH data with estimated IPW in column 12
+          # Create modified BCH data with estimated IPW in IPW column
           bch_data_est <- bch_data
-          bch_data_est[, 12] <- ipw_est$weights
+          bch_data_est[, IPW_COL] <- ipw_est$weights
           est_file <- file.path(rep_dir, "bch_data_est.dat")
           write.table(bch_data_est, est_file,
                       sep = "\t", row.names = FALSE, col.names = FALSE)
@@ -260,7 +270,8 @@ run_single_replication <- function(rep_id, N, entropy, gamma, work_dir) {
           w_sd = model_info$diag$w_sd,
           w_max = model_info$diag$w_max,
           w_cv = model_info$diag$w_cv,
-          w_n_trimmed = model_info$diag$w_n_trimmed
+          w_n_trimmed = model_info$diag$w_n_trimmed,
+          max_smd_weighted = balance_smd
         )
         next
       }
@@ -295,7 +306,8 @@ run_single_replication <- function(rep_id, N, entropy, gamma, work_dir) {
         w_sd = model_info$diag$w_sd,
         w_max = model_info$diag$w_max,
         w_cv = model_info$diag$w_cv,
-        w_n_trimmed = model_info$diag$w_n_trimmed
+        w_n_trimmed = model_info$diag$w_n_trimmed,
+        max_smd_weighted = balance_smd
       )
     }
 
@@ -323,6 +335,7 @@ make_failed_result <- function(rep_id, N, entropy, gamma) {
     ci_lower = NA, ci_upper = NA,
     obs_entropy = NA,
     converged = FALSE,
-    w_mean = NA, w_sd = NA, w_max = NA, w_cv = NA, w_n_trimmed = NA
+    w_mean = NA, w_sd = NA, w_max = NA, w_cv = NA, w_n_trimmed = NA,
+    max_smd_weighted = NA
   )
 }

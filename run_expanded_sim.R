@@ -2,7 +2,10 @@
 # Run expanded simulation: 24 conditions × 500 reps
 # 9-core parallel execution with real-time progress
 # ============================================================
-setwd("/Users/zekai/WorkPlace/LAB/MPLUS方法论论文/initial/scripts")
+# Set working directory to the script's location
+setwd(dirname(sys.frame(1)$ofile))  # Works when source()'d
+# Fallback if run interactively:
+# setwd("scripts")
 
 source("01_dgp_functions.R")
 source("02_iptw_functions.R")

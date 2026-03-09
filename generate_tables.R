@@ -423,8 +423,8 @@ conv_rates <- df_all %>%
   group_by(N, entropy, gamma, model) %>%
   summarise(
     total = n(),
-    converged = sum(converged, na.rm = TRUE),
-    conv_rate = mean(converged, na.rm = TRUE),
+    n_converged = sum(converged, na.rm = TRUE),  # Renamed to avoid collision with input column
+    conv_rate = n_converged / total,              # Use the renamed column
     .groups = "drop"
   ) %>%
   mutate(conv_pct = sprintf("%.1f", 100 * conv_rate))

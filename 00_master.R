@@ -64,12 +64,26 @@ cat(sprintf("Parallel cores: %d\n", N_CORES))
 
 start_time <- Sys.time()
 
-results <- run_simulation(
-  conditions = SIM_CONDITIONS,
-  n_reps = N_REPS,
-  base_dir = "simulation_output",
-  n_cores = N_CORES
-)
+# Run simulation: iterate over conditions, parallel over replications
+all_results <- list()
+for (cond_idx in 1:nrow(SIM_CONDITIONS)) {
+  cond <- SIM_CONDITIONS[cond_idx, ]
+  cond_label <- paste0("N", cond$N, "_", cond$entropy, "_g", cond$gamma)
+  cat(sprintf("[%d/%d] %s\n", cond_idx, nrow(SIM_CONDITIONS), cond_label))
+
+  cond_results <- mclapply(1:N_REPS, function(r) {
+    tryCatch(
+      run_single_replication(r, cond$N, cond$entropy, cond$gamma,
+                             file.path("simulation_output", cond_label)),
+      error = function(e) make_failed_result(r, cond$N, cond$entropy, cond$gamma)
+    )
+  }, mc.cores = N_CORES)
+
+  all_results[[cond_idx]] <- do.call(rbind, cond_results)
+}
+
+results <- do.call(rbind, all_results)
+saveRDS(results, "simulation_output/all_results.rds")
 
 end_time <- Sys.time()
 elapsed <- difftime(end_time, start_time, units = "hours")
